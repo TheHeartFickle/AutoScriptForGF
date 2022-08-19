@@ -6,7 +6,7 @@ from subprocess import Popen, PIPE
 from time import sleep, time, localtime
 from cv2 import imread, imdecode, IMREAD_COLOR, cvtColor, COLOR_BGR2GRAY, SIFT_create, FlannBasedMatcher, \
     drawMatchesKnn, circle, dilate, findContours, RETR_TREE, CHAIN_APPROX_SIMPLE, contourArea, boundingRect, \
-    rectangle, namedWindow, WINDOW_KEEPRATIO, resizeWindow, imshow, waitKey, destroyAllWindows
+    rectangle, namedWindow, WINDOW_KEEPRATIO, resizeWindow, imshow, waitKey, destroyAllWindows, destroyWindow
 from json import load, dump
 
 # adb shell am start com.sunborn.girlsfrontline.cn/com.sunborn.girlsfrontline.MainActivity #启动少前
@@ -14,29 +14,96 @@ from json import load, dump
 # adb shell input keyevent 3 #返回桌面
 # adb shell input keyevent 4
 
-DEBUG = 0
 shape = ()
-if DEBUG == 1:
-    cfg = './Profile.json'
-    path = '../resource'
-else:
-    cfg = 'modules/Profile.json'
-    path = 'resource'
+path = '../resource'
+photo_path = '{}/template_photo'.format(path)
+cfg = '{}/Profile.json'.format(path)
 with open(cfg, 'r', encoding='utf-8') as file:  # 从cfg.json配置文件读取配置
     file_dict = load(file)
 
 adb_path = file_dict['adb_path']
 address = file_dict['connect_address']
-file_name = listdir(path)
+file_name = listdir(photo_path)
 img_dict = {}  # 保存图片的字典，key为文件名
 
 for i in range(len(file_name)):
     img_name = file_name[i][:-4]
-    img = imread(path + '/' + file_name[i])
+    img = imread(photo_path + '/' + file_name[i])
     img_dict[img_name] = img
 
 
-def image_transmission(color=True):  # 把模拟器的截图传送至img
+class CV_image(object):
+    def __init__(self, image=None):
+        self.image = image
+
+    def shape(self):
+        return self.image.shape[:2][::-1]  # 返回长高
+
+    def show(self, window_name, window_size):
+        namedWindow(window_name, WINDOW_KEEPRATIO)
+        resizeWindow(window_name, window_size[0], window_size[1])
+        imshow(window_name, self.image)
+        waitKey(0)
+        destroyWindow(window_name)
+
+    def find(self, template, threshold=None):
+        start = time()
+        width, height = self.shape()
+        img_target_gray = cvtColor(self.image, COLOR_BGR2GRAY)
+        sift = SIFT_create()
+        kp1, des1 = sift.detectAndCompute(template, None)
+        kp2, des2 = sift.detectAndCompute(img_target_gray, None)
+        if kp1 is None or kp2 is None or des1 is None or des2 is None:
+            del img_target_gray, sift
+            return None
+        FLANN_INDEX_KDTREE = 0
+        indexParams = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
+        searchParams = dict(checks=50)
+        flann = FlannBasedMatcher(indexParams, searchParams)
+        matches = flann.knnMatch(des1, des2, k=2)
+        matchesMask = [[0, 0] for i in range(len(matches))]
+        for i, (m, n) in enumerate(matches):
+            if m.distance < 0.7 * n.distance:  # 通过0.7系数来决定匹配的有效关键点数量
+                matchesMask[i] = [1, 0]
+
+        drawPrams = dict(matchColor=(0, 255, 0),
+                         singlePointColor=(255, 0, 0),
+                         matchesMask=matchesMask,
+                         flags=0)
+        # img3 = drawMatchesKnn(template, kp1, img_target_gray,
+        #                       kp2, matches, None, **drawPrams)
+        img0 = zeros((height, width, 3), uint8)
+        img0[:] = [0, 0, 0]
+        for ele in matches:
+            if matchesMask[ele[0].queryIdx] == [1, 0]:
+                circle(img0, (int(kp2[ele[0].trainIdx].pt[0]), int(
+                    kp2[ele[0].trainIdx].pt[1])), 20, [255, 255, 255], -1)
+        img0 = cvtColor(img0, COLOR_BGR2GRAY)
+        kernel = ones((5, 5), uint8)
+        img0 = dilate(img0, kernel=kernel, iterations=2)
+        contours, hierarchy = findContours(img0, RETR_TREE, CHAIN_APPROX_SIMPLE)
+        contours = sorted(contours, key=contourArea, reverse=True)[:5]
+        if len(contours) == 0:
+            return None
+        cnt = contours[0]
+        x, y, width, height = boundingRect(cnt)
+        kp_num = 0
+        for ele in matches:
+            if matchesMask[ele[0].queryIdx] == [1, 0]:
+                if x <= kp2[ele[0].trainIdx].pt[0] <= x + width and y <= kp2[ele[0].trainIdx].pt[1] <= y + height:
+                    kp_num += 1  # 判断有多少点落在最大的矩形内部
+        kp_per = kp_num / len(matches)
+        print(time() - start)
+        rectangle(self.image, (x, y), (x + width, y + height), (0, 0, 255), 4)  # 绘制矩形
+        mid = CV_image(self.image)
+        mid.show("img", (800, 600))
+        if threshold is not None:
+            if kp_per < threshold:
+                return None
+        return int(x + width / 2), int(y + height / 2)
+
+
+def get_image(color=True):  # 把模拟器的截图传送至img
     global shape
     while 1:
         out = Popen('{} -s {} shell screencap -p'.format(adb_path, address), stdout=PIPE)
@@ -80,7 +147,7 @@ def waiting(image_name, **point):
 def find_image(image, *Flag):
     if type(image) == str:
         image = img_dict[image]
-    img_target_bgr = image_transmission()
+    img_target_bgr = get_image()
     h, w = img_target_bgr.shape[:2]
     img_target_gray = cvtColor(img_target_bgr, COLOR_BGR2GRAY)
     sift = SIFT_create()
@@ -175,9 +242,8 @@ if __name__ == '__main__':
     #       int(pix_0_hit[0] * mult), int(pix_1_hit[0])])
     # img = image_transmission()[int(pix_0_tank[1] * mult):int(pix_1_tank[1] * mult),
     #                            int(pix_0_tank[0] * mult):int(pix_1_tank[0] * mult)]
-    img = image_transmission()
-    namedWindow('img', WINDOW_KEEPRATIO)
-    resizeWindow('img', 800, 600)
-    imshow('img', img)
-    waitKey(0)
-    destroyAllWindows()
+    img = CV_image(get_image())
+    # img.show("img", (800, 600))
+    img.find(img_dict["retire"])
+    # w, h = img.shape()
+    # print(w, h)

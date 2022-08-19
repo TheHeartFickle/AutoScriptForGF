@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="394ee5dd-285e-4006-a57c-d7df2cb94ffa" name="变更" comment="" />
+    <list default="true" id="394ee5dd-285e-4006-a57c-d7df2cb94ffa" name="变更" comment="第一次提交 -仅实装窗口">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/operation.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/operation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sample/1.py" beforeDir="false" afterPath="$PROJECT_DIR$/sample/1.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -23,10 +28,32 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "D:/AutoScriptForGF",
     "settings.editor.selected.configurable": "File.Encoding"
   }
 }]]></component>
-  <component name="RunManager" selected="Python.make">
+  <component name="RunManager" selected="Python.base">
+    <configuration name="base" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="AutoScriptForGF" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/modules" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/modules/base.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="AutoScriptForGF" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -71,6 +98,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.base" />
         <item itemvalue="Python.make" />
         <item itemvalue="Python.main" />
       </list>
@@ -85,6 +113,29 @@
       <option name="presentableId" value="Default" />
       <updated>1660920472374</updated>
     </task>
+    <task id="LOCAL-00001" summary="第一次提交 -仅实装窗口">
+      <created>1660924275206</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1660924275206</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="第一次提交 -仅实装窗口" />
+    <option name="LAST_COMMIT_MESSAGE" value="第一次提交 -仅实装窗口" />
   </component>
 </project>

@@ -74,7 +74,7 @@ def init():
 
     while Flag:
         try:
-            img_test = image_transmission(False)
+            img_test = get_image(False)
             h, w = img_test.shape
             mult = h / 1728
             print('mult =', mult)
@@ -113,7 +113,7 @@ def enter_13_4():  # 进入13-4，如果没有初始化则初始化棋盘并点�
 
 def Check():  # 判断二队打手口粮弹药是否满,以及是否有大破人形
     print('操作:检测拖尸队状态')
-    image = image_transmission(True)
+    image = get_image(True)
     image_hit = image[int(pix_0_hit[1] * mult):int(pix_1_hit[1] * mult),
                 int(pix_0_hit[0] * mult):int(pix_1_hit[0] * mult)]
     image_tank = image[int(pix_0_tank[1] * mult):int(pix_1_tank[1] * mult),
