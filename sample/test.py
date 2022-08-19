@@ -102,21 +102,32 @@
 # else:
 #     print('no such process...')
 
-def ch_utf_tran(input_, Flag=True):
-    if Flag:
-        return str(input_.encode('unicode_escape'))[2:-1]
-    else:
-        return input_.encode('utf-8').decode('unicode_escape')
-        # return input_.decode('unicode_escape')
+list_ = [(371, 733), (375, 741), (375, 741), (381, 639), (385, 655), (388, 706), (388, 706), (394, 683), (396, 644),
+         (399, 739), (401, 684), (409, 635), (415, 744), (415, 744), (425, 662), (426, 745), (437, 660), (441, 726),
+         (445, 602), (448, 711), (448, 662), (451, 723), (451, 723), (456, 702), (456, 702), (456, 682), (462, 628),
+         (475, 691), (475, 691), (479, 713), (482, 649), (489, 712), (489, 662), (500, 657), (521, 646)]
+
+
+# (x, y, width, height)
+# 347 578 199 192
+
+
+def func(List, shape):
+    """
+    根据shape分成若干份并记录中心坐标放入队列
+    计算中心坐标与List中的点距离（x,y距离大于半径就跳过，已被覆盖就标记并计算队列的下一个点）
+    寻找被标记的块并找到最大集群
+    :param List:
+    :param shape:
+    :return:
+    """
+
+    return
 
 
 if __name__ == '__main__':
-    # aft = ch_utf_tran("high-高级", True)
-    # # aft = str(aft)
-    # print(aft, type(aft))
-    # aft = ch_utf_tran(aft, False)
-    aft = ch_utf_tran('high-\\u9ad8\\u7ea7',False)
-    print(aft, type(aft))
+    func(list_, (2304, 1728))
+    pass
     # cannot_find = 'unable to connect'
     # have_error = 'error'
     #

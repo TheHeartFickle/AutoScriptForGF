@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="394ee5dd-285e-4006-a57c-d7df2cb94ffa" name="变更" comment="项目结构优化">
+    <list default="true" id="394ee5dd-285e-4006-a57c-d7df2cb94ffa" name="变更" comment="图像匹配方法优化 0.2s（">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sample/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/sample/test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -139,7 +140,14 @@
       <option name="project" value="LOCAL" />
       <updated>1660927625717</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="图像匹配方法优化 0.2s（">
+      <created>1660929519145</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1660929519145</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -157,6 +165,7 @@
     <MESSAGE value="第一次提交 -仅实装窗口" />
     <MESSAGE value="构建图像对象&#10;图像匹配尚未实装" />
     <MESSAGE value="项目结构优化" />
-    <option name="LAST_COMMIT_MESSAGE" value="项目结构优化" />
+    <MESSAGE value="图像匹配方法优化 0.2s（" />
+    <option name="LAST_COMMIT_MESSAGE" value="图像匹配方法优化 0.2s（" />
   </component>
 </project>

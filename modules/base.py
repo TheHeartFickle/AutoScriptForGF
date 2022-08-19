@@ -46,13 +46,13 @@ class CV_image(object):
         waitKey(0)
         destroyWindow(window_name)
 
-    def find(self, template, threshold=None):
+    def find(self, template, threshold=None, *areas):
         width, height = self.shape()
         img_gray = cvtColor(self.image, COLOR_BGR2GRAY)
         sift = SIFT_create()  # 准备工作
 
         kp1, des1 = sift.detectAndCompute(template, None)
-        kp2, des2 = sift.detectAndCompute(img_gray, None)
+        kp2, des2 = sift.detectAndCompute(img_gray, None)  # 耗时最久语句
         # 原理：根据模板和原图的灰度图对原图的匹配值进行计算(maybe
 
         if kp1 is None or kp2 is None or des1 is None or des2 is None:
@@ -75,9 +75,13 @@ class CV_image(object):
 
         img_inited = zeros((height, width), uint8)  # 二值化图像
         img_inited.fill(0)
+        # List = []
         for ele in matches:  # 通过在纯黑图像上画白点来寻找最大矩形，可设计算法优化
             if matchesMask[ele[0].queryIdx] == [1, 0]:
-                circle(img_inited, (int(kp2[ele[0].trainIdx].pt[0]), int(kp2[ele[0].trainIdx].pt[1])), 20, 255, -1)
+                point = (int(kp2[ele[0].trainIdx].pt[0]), int(kp2[ele[0].trainIdx].pt[1]))
+                circle(img_inited, point, 20, 255, -1)
+                # List.append(point)
+        # print(List)
 
         kernel = ones((5, 5), uint8)  # 膨胀
         img_inited = dilate(img_inited, kernel=kernel, iterations=2)
@@ -89,6 +93,7 @@ class CV_image(object):
             return None
         cnt = contours[0]
         x, y, width, height = boundingRect(cnt)  # 返回最大边框左上角点和宽高
+        # print(x, y, width, height)
 
         kp_num = 0
         for ele in matches:
@@ -98,7 +103,8 @@ class CV_image(object):
         kp_per = kp_num / len(matches)
 
         # rectangle(self.image, (x, y), (x + width, y + height), (0, 0, 255), 4)  # 绘制矩形
-
+        # aft = CV_image(self.image)
+        # aft.show("img", (800, 600))
         if threshold is not None:  # 如果threshold为None则没有阈值要求
             if kp_per < threshold:
                 return None
@@ -244,10 +250,15 @@ def go_back():
 # img = image_transmission()[int(pix_0_tank[1] * mult):int(pix_1_tank[1] * mult),
 #                            int(pix_0_tank[0] * mult):int(pix_1_tank[0] * mult)]
 if __name__ == '__main__':
-
     start = time()
     img = CV_image(get_image())
-    img.find(img_dict["retire"])
-    # find_image("retire")
-    print(time()-start)
+    img.find(img_dict["icon_vv"])
+    # time0 = time() - start
+    # print("time0:", time0)
+    #
+    # after = time()
+    # find_image("icon_vv")
+    # time1 = time() - after
+    # print("time1:", time1)
+    # print(round(100 * (time0 / time1), 3), "%")
     pass
