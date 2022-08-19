@@ -47,15 +47,18 @@ class CV_image(object):
         destroyWindow(window_name)
 
     def find(self, template, threshold=None):
-        start = time()
         width, height = self.shape()
-        img_target_gray = cvtColor(self.image, COLOR_BGR2GRAY)
-        sift = SIFT_create()
+        img_gray = cvtColor(self.image, COLOR_BGR2GRAY)
+        sift = SIFT_create()  # 准备工作
+
         kp1, des1 = sift.detectAndCompute(template, None)
-        kp2, des2 = sift.detectAndCompute(img_target_gray, None)
+        kp2, des2 = sift.detectAndCompute(img_gray, None)
+        # 原理：根据模板和原图的灰度图对原图的匹配值进行计算(maybe
+
         if kp1 is None or kp2 is None or des1 is None or des2 is None:
-            del img_target_gray, sift
-            return None
+            del img_gray, sift
+            return None  # 无匹配值
+
         FLANN_INDEX_KDTREE = 0
         indexParams = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
         searchParams = dict(checks=50)
@@ -66,38 +69,37 @@ class CV_image(object):
             if m.distance < 0.7 * n.distance:  # 通过0.7系数来决定匹配的有效关键点数量
                 matchesMask[i] = [1, 0]
 
-        drawPrams = dict(matchColor=(0, 255, 0),
-                         singlePointColor=(255, 0, 0),
-                         matchesMask=matchesMask,
-                         flags=0)
-        # img3 = drawMatchesKnn(template, kp1, img_target_gray,
-        #                       kp2, matches, None, **drawPrams)
-        img0 = zeros((height, width, 3), uint8)
-        img0[:] = [0, 0, 0]
-        for ele in matches:
+        # drawPrams = dict(matchColor=(0, 255, 0), singlePointColor=(255, 0, 0), matchesMask=matchesMask, flags=0)
+        # img3 = drawMatchesKnn(template, kp1, img_gray, kp2, matches, None, **drawPrams)
+        # img3:图像匹配可视化,运行时注释掉节约性能
+
+        img_inited = zeros((height, width), uint8)  # 二值化图像
+        img_inited.fill(0)
+        for ele in matches:  # 通过在纯黑图像上画白点来寻找最大矩形，可设计算法优化
             if matchesMask[ele[0].queryIdx] == [1, 0]:
-                circle(img0, (int(kp2[ele[0].trainIdx].pt[0]), int(
-                    kp2[ele[0].trainIdx].pt[1])), 20, [255, 255, 255], -1)
-        img0 = cvtColor(img0, COLOR_BGR2GRAY)
-        kernel = ones((5, 5), uint8)
-        img0 = dilate(img0, kernel=kernel, iterations=2)
-        contours, hierarchy = findContours(img0, RETR_TREE, CHAIN_APPROX_SIMPLE)
+                circle(img_inited, (int(kp2[ele[0].trainIdx].pt[0]), int(kp2[ele[0].trainIdx].pt[1])), 20, 255, -1)
+
+        kernel = ones((5, 5), uint8)  # 膨胀
+        img_inited = dilate(img_inited, kernel=kernel, iterations=2)
+
+        contours, hierarchy = findContours(img_inited, RETR_TREE, CHAIN_APPROX_SIMPLE)  # 寻找最大边框
         contours = sorted(contours, key=contourArea, reverse=True)[:5]
+
         if len(contours) == 0:
             return None
         cnt = contours[0]
-        x, y, width, height = boundingRect(cnt)
+        x, y, width, height = boundingRect(cnt)  # 返回最大边框左上角点和宽高
+
         kp_num = 0
         for ele in matches:
             if matchesMask[ele[0].queryIdx] == [1, 0]:
                 if x <= kp2[ele[0].trainIdx].pt[0] <= x + width and y <= kp2[ele[0].trainIdx].pt[1] <= y + height:
                     kp_num += 1  # 判断有多少点落在最大的矩形内部
         kp_per = kp_num / len(matches)
-        print(time() - start)
-        rectangle(self.image, (x, y), (x + width, y + height), (0, 0, 255), 4)  # 绘制矩形
-        mid = CV_image(self.image)
-        mid.show("img", (800, 600))
-        if threshold is not None:
+
+        # rectangle(self.image, (x, y), (x + width, y + height), (0, 0, 255), 4)  # 绘制矩形
+
+        if threshold is not None:  # 如果threshold为None则没有阈值要求
             if kp_per < threshold:
                 return None
         return int(x + width / 2), int(y + height / 2)
@@ -232,18 +234,20 @@ def go_back():
     system("{} -s {} shell input keyevent BACK".format(adb_path, address))
 
 
+# pix_0_hit = (615, 1160)  # 这两个点用于框选打手弹药口粮信息
+# pix_1_hit = (910, 1270)
+# pix_0_tank = (950, 1100)  # 这两个点用于框选抗伤人形血量信息
+# pix_1_tank = (1240, 1160)
+# # system('adb shell am start com.sunborn.girlsfrontline.cn/com.sunborn.girlsfrontline.MainActivity')
+# print([int(pix_0_hit[1] * mult), int(pix_1_hit[1] * mult),
+#       int(pix_0_hit[0] * mult), int(pix_1_hit[0])])
+# img = image_transmission()[int(pix_0_tank[1] * mult):int(pix_1_tank[1] * mult),
+#                            int(pix_0_tank[0] * mult):int(pix_1_tank[0] * mult)]
 if __name__ == '__main__':
-    # pix_0_hit = (615, 1160)  # 这两个点用于框选打手弹药口粮信息
-    # pix_1_hit = (910, 1270)
-    # pix_0_tank = (950, 1100)  # 这两个点用于框选抗伤人形血量信息
-    # pix_1_tank = (1240, 1160)
-    # # system('adb shell am start com.sunborn.girlsfrontline.cn/com.sunborn.girlsfrontline.MainActivity')
-    # print([int(pix_0_hit[1] * mult), int(pix_1_hit[1] * mult),
-    #       int(pix_0_hit[0] * mult), int(pix_1_hit[0])])
-    # img = image_transmission()[int(pix_0_tank[1] * mult):int(pix_1_tank[1] * mult),
-    #                            int(pix_0_tank[0] * mult):int(pix_1_tank[0] * mult)]
+
+    start = time()
     img = CV_image(get_image())
-    # img.show("img", (800, 600))
     img.find(img_dict["retire"])
-    # w, h = img.shape()
-    # print(w, h)
+    # find_image("retire")
+    print(time()-start)
+    pass

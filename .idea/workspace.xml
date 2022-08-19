@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="394ee5dd-285e-4006-a57c-d7df2cb94ffa" name="变更" comment="构建图像对象&#10;图像匹配尚未实装">
-      <change beforePath="$PROJECT_DIR$/sample/1.py" beforeDir="false" afterPath="$PROJECT_DIR$/sample/1.py" afterDir="false" />
+    <list default="true" id="394ee5dd-285e-4006-a57c-d7df2cb94ffa" name="变更" comment="项目结构优化">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/base.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,7 +30,7 @@
     "settings.editor.selected.configurable": "File.Encoding"
   }
 }]]></component>
-  <component name="RunManager" selected="Python.main">
+  <component name="RunManager" selected="Python.base">
     <configuration name="base" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="AutoScriptForGF" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -95,8 +96,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.main" />
         <item itemvalue="Python.base" />
+        <item itemvalue="Python.main" />
         <item itemvalue="Python.make" />
       </list>
     </recent_temporary>
@@ -124,7 +125,21 @@
       <option name="project" value="LOCAL" />
       <updated>1660927481750</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="项目结构优化">
+      <created>1660927620265</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1660927620265</updated>
+    </task>
+    <task id="LOCAL-00004" summary="项目结构优化">
+      <created>1660927625717</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1660927625717</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -141,6 +156,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="第一次提交 -仅实装窗口" />
     <MESSAGE value="构建图像对象&#10;图像匹配尚未实装" />
-    <option name="LAST_COMMIT_MESSAGE" value="构建图像对象&#10;图像匹配尚未实装" />
+    <MESSAGE value="项目结构优化" />
+    <option name="LAST_COMMIT_MESSAGE" value="项目结构优化" />
   </component>
 </project>
