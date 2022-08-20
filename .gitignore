@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 AutoScriptForGF/*
 src/__pycache__/*
 modules/__pycache__/*
@@ -8,3 +9,8 @@ modules.7z
 =======
 AutoScriptForGF
 >>>>>>> 3863c8b (新增批处理文件)
+=======
+AutoScriptForGF/
+src\__pycache__
+modules\__pycache__
+>>>>>>> 89d7823 (-a)

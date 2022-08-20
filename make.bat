@@ -20,3 +20,4 @@ xcopy "modules" "main/modules" /s/y
 xcopy "resource" "main/resource" /s/y
 
 rename main AutoScriptForGF
+
