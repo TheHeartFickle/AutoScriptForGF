@@ -1,13 +1,39 @@
-from numpy import asarray, zeros, uint8, ones
+from ast import Not
 from gc import collect
+from os import system
+from json import dump, load
 from os import listdir, system  # , chdir
 from random import random
-from subprocess import Popen, PIPE
-from time import sleep, time, localtime
-from cv2 import imread, imdecode, IMREAD_COLOR, cvtColor, COLOR_BGR2GRAY, SIFT_create, FlannBasedMatcher, \
-    drawMatchesKnn, circle, dilate, findContours, RETR_TREE, CHAIN_APPROX_SIMPLE, contourArea, boundingRect, \
-    rectangle, namedWindow, WINDOW_KEEPRATIO, resizeWindow, imshow, waitKey, destroyAllWindows, destroyWindow
-from json import load, dump
+from subprocess import PIPE, Popen
+import sys
+from time import localtime, sleep, time
+
+from cv2 import (
+    CHAIN_APPROX_SIMPLE,
+    COLOR_BGR2GRAY,
+    IMREAD_COLOR,
+    RETR_TREE,
+    WINDOW_KEEPRATIO,
+    FlannBasedMatcher,
+    SIFT_create,
+    boundingRect,
+    circle,
+    contourArea,
+    cvtColor,
+    destroyAllWindows,
+    destroyWindow,
+    dilate,
+    drawMatchesKnn,
+    findContours,
+    imdecode,
+    imread,
+    imshow,
+    namedWindow,
+    rectangle,
+    resizeWindow,
+    waitKey,
+)
+from numpy import asarray, ones, uint8, zeros
 
 # adb shell am start com.sunborn.girlsfrontline.cn/com.sunborn.girlsfrontline.MainActivity #启动少前
 # adb shell am force-stop com.sunborn.girlsfrontline.cn #退出少前
@@ -15,10 +41,12 @@ from json import load, dump
 # adb shell input keyevent 4
 
 shape = ()
-path = '../resource'
+path = './resource'
 photo_path = '{}/template_photo'.format(path)
 cfg = '{}/Profile.json'.format(path)
-with open(cfg, 'r', encoding='utf-8') as file:  # 从cfg.json配置文件读取配置
+
+system("cd ..")
+with open(cfg, 'r', encoding='utf-8') as file:  # 从Profile.json配置文件读取配置
     file_dict = load(file)
 
 adb_path = file_dict['adb_path']
@@ -31,6 +59,8 @@ for i in range(len(file_name)):
     img = imread(photo_path + '/' + file_name[i])
     img_dict[img_name] = img
 
+system("cd modules")
+
 
 class CV_image(object):
     def __init__(self, image=None):
@@ -39,16 +69,27 @@ class CV_image(object):
     def shape(self):
         return self.image.shape[:2][::-1]  # 返回长高
 
-    def show(self, window_name, window_size):
+    def show(self, window_name, window_size=None):
         namedWindow(window_name, WINDOW_KEEPRATIO)
-        resizeWindow(window_name, window_size[0], window_size[1])
+        if window_size is not None:
+            resizeWindow(window_name, window_size[0], window_size[1])
+        else:
+            resizeWindow(window_name, self.shape()[0], self.shape()[1])
         imshow(window_name, self.image)
         waitKey(0)
         destroyWindow(window_name)
 
-    def find(self, template, threshold=None, *areas):
+    def find(
+        self, template, threshold=None, **area
+    ):  # areas仅支持输入左上角和右下角的坐标(x1,y1),(x2,y2)->[y1:y2,x1:x2]
         width, height = self.shape()
-        img_gray = cvtColor(self.image, COLOR_BGR2GRAY)
+        if area != {}:
+            areas = area['areas']
+            img_bgr = self.image[areas[0][1] : areas[1][1], areas[0][0] : areas[1][0]]
+        else:
+            img_bgr = self.image
+
+        img_gray = cvtColor(img_bgr, COLOR_BGR2GRAY)
         sift = SIFT_create()  # 准备工作
 
         kp1, des1 = sift.detectAndCompute(template, None)
@@ -76,9 +117,12 @@ class CV_image(object):
         img_inited = zeros((height, width), uint8)  # 二值化图像
         img_inited.fill(0)
         # List = []
-        for ele in matches:  # 通过在纯黑图像上画白点来寻找最大矩形，可设计算法优化
+        for ele in matches:  # 通过在纯黑图像上画白点来寻找最大矩形，可设计算法优化(还优化个啥，又不是时间大头)
             if matchesMask[ele[0].queryIdx] == [1, 0]:
-                point = (int(kp2[ele[0].trainIdx].pt[0]), int(kp2[ele[0].trainIdx].pt[1]))
+                point = (
+                    int(kp2[ele[0].trainIdx].pt[0]),
+                    int(kp2[ele[0].trainIdx].pt[1]),
+                )
                 circle(img_inited, point, 20, 255, -1)
                 # List.append(point)
         # print(List)
@@ -86,7 +130,9 @@ class CV_image(object):
         kernel = ones((5, 5), uint8)  # 膨胀
         img_inited = dilate(img_inited, kernel=kernel, iterations=2)
 
-        contours, hierarchy = findContours(img_inited, RETR_TREE, CHAIN_APPROX_SIMPLE)  # 寻找最大边框
+        contours, hierarchy = findContours(
+            img_inited, RETR_TREE, CHAIN_APPROX_SIMPLE
+        )  # 寻找最大边框
         contours = sorted(contours, key=contourArea, reverse=True)[:5]
 
         if len(contours) == 0:
@@ -98,7 +144,10 @@ class CV_image(object):
         kp_num = 0
         for ele in matches:
             if matchesMask[ele[0].queryIdx] == [1, 0]:
-                if x <= kp2[ele[0].trainIdx].pt[0] <= x + width and y <= kp2[ele[0].trainIdx].pt[1] <= y + height:
+                if (
+                    x <= kp2[ele[0].trainIdx].pt[0] <= x + width
+                    and y <= kp2[ele[0].trainIdx].pt[1] <= y + height
+                ):
                     kp_num += 1  # 判断有多少点落在最大的矩形内部
         kp_per = kp_num / len(matches)
 
@@ -114,7 +163,9 @@ class CV_image(object):
 def get_image(color=True):  # 把模拟器的截图传送至img
     global shape
     while 1:
-        out = Popen('{} -s {} shell screencap -p'.format(adb_path, address), stdout=PIPE)
+        out = Popen(
+            '{} -s {} shell screencap -p'.format(adb_path, address), stdout=PIPE
+        )
         out = out.stdout.read().replace(b'\r\n', b'\n')
         out = asarray(bytearray(out), dtype='uint8')
         try:
@@ -130,92 +181,26 @@ def get_image(color=True):  # 把模拟器的截图传送至img
     return image
 
 
-def waiting(image_name, **point):
-    image = img_dict[image_name]  # 从字典中读取图片
-    flag = True
-    x, y = 0, 0
-    while flag:  # 直到指定图像在图片中展示，否则等待2秒
-        for i in range(10):
-            loc = find_image(image, True)
-            if loc is not None:
-                x = loc[0]
-                y = loc[1]
-                flag = False
-                break
-            else:
-                collect()
-                sleep(2)
-        if type(point) == tuple:
-            Click(point)
-        collect()
-    del image
-    return x, y  # 返回图像中心坐标
-
-
-def find_image(image, *Flag):
-    if type(image) == str:
-        image = img_dict[image]
-    img_target_bgr = get_image()
-    h, w = img_target_bgr.shape[:2]
-    img_target_gray = cvtColor(img_target_bgr, COLOR_BGR2GRAY)
-    sift = SIFT_create()
-    kp1, des1 = sift.detectAndCompute(image, None)
-    kp2, des2 = sift.detectAndCompute(img_target_gray, None)
-    if kp1 is None or kp2 is None or des1 is None or des2 is None:
-        del img_target_bgr, img_target_gray, sift
-        # print('无相似度')
-        return None
-    # print('sift|kp1-2,des1-2', len(kp1), len(kp2), len(des1), len(des2))
-    FLANN_INDEX_KDTREE = 0
-    indexParams = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
-    searchParams = dict(checks=50)
-    flann = FlannBasedMatcher(indexParams, searchParams)
-    matches = flann.knnMatch(des1, des2, k=2)
-    matchesMask = [[0, 0] for i in range(len(matches))]
-    for i, (m, n) in enumerate(matches):
-        if m.distance < 0.7 * n.distance:  # 通过0.7系数来决定匹配的有效关键点数量
-            matchesMask[i] = [1, 0]
-
-    drawPrams = dict(matchColor=(0, 255, 0),
-                     singlePointColor=(255, 0, 0),
-                     matchesMask=matchesMask,
-                     flags=0)
-    # 匹配结果图片
-    img3 = drawMatchesKnn(image, kp1, img_target_gray,
-                          kp2, matches, None, **drawPrams)
-    img0 = zeros((h, w, 3), uint8)
-    img0[:] = [0, 0, 0]
-    for ele in matches:
-        if matchesMask[ele[0].queryIdx] == [1, 0]:
-            circle(img0, (int(kp2[ele[0].trainIdx].pt[0]), int(
-                kp2[ele[0].trainIdx].pt[1])), 20, [255, 255, 255], -1)
-    img0 = cvtColor(img0, COLOR_BGR2GRAY)
-    kernel = ones((5, 5), uint8)
-    img0 = dilate(img0, kernel=kernel, iterations=2)
-    contours, hierarchy = findContours(img0, RETR_TREE, CHAIN_APPROX_SIMPLE)
-    contours = sorted(contours, key=contourArea, reverse=True)[
-               :5]  # 运用函数从图像中自动寻找最大的边框
-    if len(contours) == 0:
-        del img_target_bgr, img_target_gray, sift, flann, matches, matchesMask, drawPrams, img3, img0
-        # print('相似度过低')
-        return None
-    cnt = contours[0]
-    x, y, w, h = boundingRect(cnt)
-    kp_num = 0
-    for ele in matches:
-        if matchesMask[ele[0].queryIdx] == [1, 0]:
-            if x <= kp2[ele[0].trainIdx].pt[0] <= x + w and y <= kp2[ele[0].trainIdx].pt[1] <= y + h:
-                kp_num += 1  # 判断有多少点落在最大的矩形内部
-    kp_per = kp_num / len(matches)
-    # print('相似度：', round(100 * kp_per, 3))
-    if kp_per < 0.15 and Flag:
-        del img_target_bgr, img_target_gray, sift, flann, matches, matchesMask, drawPrams, img3, img0
-        return None
-    rectangle(img_target_bgr, (x, y), (x + w, y + h), (0, 0, 255), 4)  # 绘制矩形
-    del img_target_bgr, img_target_gray, sift, flann, matches, matchesMask, drawPrams, img3, img0
-    collect()
-    # print('中心点:', int(x + w / 2), int(y + h / 2))
-    return int(x + w / 2), int(y + h / 2)
+# def waiting(image_name, **point):
+#     image = img_dict[image_name]  # 从字典中读取图片
+#     flag = True
+#     x, y = 0, 0
+#     while flag:  # 直到指定图像在图片中展示，否则等待2秒
+#         for i in range(10):
+#             loc = find_image(image, True)
+#             if loc is not None:
+#                 x = loc[0]
+#                 y = loc[1]
+#                 flag = False
+#                 break
+#             else:
+#                 collect()
+#                 sleep(2)
+#         if type(point) == tuple:
+#             Click(point)
+#         collect()
+#     del image
+#     return x, y  # 返回图像中心坐标
 
 
 def sleep_(secs):
@@ -224,8 +209,13 @@ def sleep_(secs):
 
 def get_time():
     asc = localtime(time())
-    return "{}-{}  {}:{}:{} ".format(str(asc.tm_mon).zfill(2), str(asc.tm_mday).zfill(2), str(asc.tm_hour).zfill(2),
-                                     str(asc.tm_min).zfill(2), str(asc.tm_sec).zfill(2))
+    return "{}-{}  {}:{}:{} ".format(
+        str(asc.tm_mon).zfill(2),
+        str(asc.tm_mday).zfill(2),
+        str(asc.tm_hour).zfill(2),
+        str(asc.tm_min).zfill(2),
+        str(asc.tm_sec).zfill(2),
+    )
 
 
 def Click(Tuple, mult=1):
@@ -233,7 +223,11 @@ def Click(Tuple, mult=1):
     if x0 > shape[0] or y0 > shape[1]:
         pass
     else:
-        system("{} -s {} shell input tap {} {}".format(adb_path, address, int(x0 * mult), int(y0 * mult)))
+        system(
+            "{} -s {} shell input tap {} {}".format(
+                adb_path, address, int(x0 * mult), int(y0 * mult)
+            )
+        )
 
 
 def go_back():
@@ -252,13 +246,13 @@ def go_back():
 if __name__ == '__main__':
     start = time()
     img = CV_image(get_image())
-    img.find(img_dict["icon_vv"])
-    # time0 = time() - start
-    # print("time0:", time0)
+    img.find(img_dict["icon_vv"], areas=((270, 430), (570, 1130)))
+    time0 = time() - start
+    print("time0:", time0)
     #
     # after = time()
     # find_image("icon_vv")
     # time1 = time() - after
     # print("time1:", time1)
     # print(round(100 * (time0 / time1), 3), "%")
-    pass
+    print("Done")
