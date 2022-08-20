@@ -67,7 +67,7 @@ class CV_image(object):
         self.image = image
 
     def shape(self):
-        return self.image.shape[:2][::-1]  # 返回长高
+        return self.image.shape[:2][::-1]  # 返回宽高
 
     def show(self, window_name, window_size=None):
         namedWindow(window_name, WINDOW_KEEPRATIO)
@@ -82,13 +82,14 @@ class CV_image(object):
     def find(
         self, template, threshold=None, **area
     ):  # areas仅支持输入左上角和右下角的坐标(x1,y1),(x2,y2)->[y1:y2,x1:x2]
-        width, height = self.shape()
-        if area != {}:
+
+        area_flag = area != {}
+        if area_flag:
             areas = area['areas']
             img_bgr = self.image[areas[0][1] : areas[1][1], areas[0][0] : areas[1][0]]
         else:
             img_bgr = self.image
-
+        width, height = img_bgr.shape[:2][::-1]
         img_gray = cvtColor(img_bgr, COLOR_BGR2GRAY)
         sift = SIFT_create()  # 准备工作
 
@@ -157,7 +158,10 @@ class CV_image(object):
         if threshold is not None:  # 如果threshold为None则没有阈值要求
             if kp_per < threshold:
                 return None
-        return int(x + width / 2), int(y + height / 2)
+        if area_flag:
+            return int(x + width / 2 + areas[0][0]), int(y + height / 2 + areas[0][1])
+        else:
+            return int(x + width / 2), int(y + height / 2)
 
 
 def get_image(color=True):  # 把模拟器的截图传送至img
@@ -179,28 +183,6 @@ def get_image(color=True):  # 把模拟器的截图传送至img
     if shape == ():
         shape = (image.shape[1], image.shape[0])
     return image
-
-
-# def waiting(image_name, **point):
-#     image = img_dict[image_name]  # 从字典中读取图片
-#     flag = True
-#     x, y = 0, 0
-#     while flag:  # 直到指定图像在图片中展示，否则等待2秒
-#         for i in range(10):
-#             loc = find_image(image, True)
-#             if loc is not None:
-#                 x = loc[0]
-#                 y = loc[1]
-#                 flag = False
-#                 break
-#             else:
-#                 collect()
-#                 sleep(2)
-#         if type(point) == tuple:
-#             Click(point)
-#         collect()
-#     del image
-#     return x, y  # 返回图像中心坐标
 
 
 def sleep_(secs):
@@ -238,15 +220,10 @@ def go_back():
 # pix_1_hit = (910, 1270)
 # pix_0_tank = (950, 1100)  # 这两个点用于框选抗伤人形血量信息
 # pix_1_tank = (1240, 1160)
-# # system('adb shell am start com.sunborn.girlsfrontline.cn/com.sunborn.girlsfrontline.MainActivity')
-# print([int(pix_0_hit[1] * mult), int(pix_1_hit[1] * mult),
-#       int(pix_0_hit[0] * mult), int(pix_1_hit[0])])
-# img = image_transmission()[int(pix_0_tank[1] * mult):int(pix_1_tank[1] * mult),
-#                            int(pix_0_tank[0] * mult):int(pix_1_tank[0] * mult)]
 if __name__ == '__main__':
     start = time()
     img = CV_image(get_image())
-    img.find(img_dict["icon_vv"], areas=((270, 430), (570, 1130)))
+    print(img.find(img_dict["icon_vv"], areas=((270, 430), (570, 1130))))
     time0 = time() - start
     print("time0:", time0)
     #
