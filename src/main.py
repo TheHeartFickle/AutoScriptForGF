@@ -1,25 +1,33 @@
-from modules.mainwindow import Ui_Form
 from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QCoreApplication, Qt, QThread, pyqtSignal
 from sys import argv, exit
-from os import getcwd
+from os import getcwd, system
 from json import load, dump
 from time import time, localtime
+from sys import path
+
+path.append('modules')
+from Ui_mainwindow import Ui_Form
 
 DEBUG = 0
 
 QCoreApplication.setAttribute(Qt.AA_DisableWindowContextHelpButton)
-cfg = '../resource/Profile.json'
+cfg = './resource/Profile.json'
 with open(cfg, 'r', encoding='utf-8') as file:  # 从cfg.json配置文件读取配置
     file_dict = load(file)
 
 
 def get_time():
     asc = localtime(time())
-    return "{}-{}  {}:{}:{}".format(str(asc.tm_mon).zfill(2), str(asc.tm_mday).zfill(2), str(asc.tm_hour).zfill(2),
-                                    str(asc.tm_min).zfill(2), str(asc.tm_sec).zfill(2))
+    return "{}-{}  {}:{}:{}".format(
+        str(asc.tm_mon).zfill(2),
+        str(asc.tm_mday).zfill(2),
+        str(asc.tm_hour).zfill(2),
+        str(asc.tm_min).zfill(2),
+        str(asc.tm_sec).zfill(2),
+    )
 
 
 def ch_utf_tran(input_, Flag=True):
@@ -65,12 +73,16 @@ class MainForm(QWidget, Ui_Form):
         global file_dict
         super(MainForm, self).__init__()
         self.setupUi(self)
-        self.setWindowTitle("AutoScriptForGF - ({})".format(file_dict['connect_address']))
-        self.setWindowIcon(QIcon("./modules/kar98k.ico"))
+        self.setWindowTitle(
+            "AutoScriptForGF - ({})".format(file_dict['connect_address'])
+        )
+        self.setWindowIcon(QIcon("resource\kar98k.ico"))
         self.setFixedSize(1005, 700)
         self.setWindowFlags(Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         self.Page.setCurrentWidget(self.page_1)
-        self.running_text.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)  # 初始化完成
+        self.running_text.setVerticalScrollBarPolicy(
+            QtCore.Qt.ScrollBarAlwaysOff
+        )  # 初始化完成
         if DEBUG == 1:
             self.Page.setCurrentWidget(self.page_debug)
 
@@ -98,12 +110,22 @@ class MainForm(QWidget, Ui_Form):
         self.Button_3.clicked.connect(lambda: self.change_page(3))
 
         self.Button_select_adb.clicked.connect(self.select_adb)
-        self.text_address.editingFinished.connect(lambda a='connect_address': self.edit_final(a))
+        self.text_address.editingFinished.connect(
+            lambda a='connect_address': self.edit_final(a)
+        )
         self.lineEdit.editingFinished.connect(lambda a='time': self.edit_final(a))
-        self.comboBox.currentIndexChanged.connect(lambda a, b='done': self.edit_final(a, b))
-        self.comboBox_5.currentIndexChanged.connect(lambda a, b='produce_doll': self.edit_final(a, b))
-        self.comboBox_4.currentIndexChanged.connect(lambda a, b='produce_equipment': self.edit_final(a, b))
-        self.comboBox_2.currentIndexChanged.connect(lambda a, b='kinetic_index': self.edit_final(a, b))
+        self.comboBox.currentIndexChanged.connect(
+            lambda a, b='done': self.edit_final(a, b)
+        )
+        self.comboBox_5.currentIndexChanged.connect(
+            lambda a, b='produce_doll': self.edit_final(a, b)
+        )
+        self.comboBox_4.currentIndexChanged.connect(
+            lambda a, b='produce_equipment': self.edit_final(a, b)
+        )
+        self.comboBox_2.currentIndexChanged.connect(
+            lambda a, b='kinetic_index': self.edit_final(a, b)
+        )
         self.pushButton_8.clicked.connect(lambda a, b=1: self.kinetic_profile(a, b))
         self.pushButton_9.clicked.connect(lambda a, b=0: self.kinetic_profile(a, b))
         self.pushButton_6.clicked.connect(self.start)
@@ -143,7 +165,9 @@ class MainForm(QWidget, Ui_Form):
                         if 48 <= ord(ele) <= 57 or ele == ':' or ele == '.':
                             pass
                     file_dict[key] = value
-                    self.setWindowTitle("AutoScriptForGF - ({})".format(file_dict['connect_address']))
+                    self.setWindowTitle(
+                        "AutoScriptForGF - ({})".format(file_dict['connect_address'])
+                    )
                 except:
                     self.text_address.setText(file_dict['connect_address'])
 
@@ -173,42 +197,56 @@ class MainForm(QWidget, Ui_Form):
         self.begin("save_json", None)
 
     def change_page(self, button):
-        self.Button_1.setStyleSheet("color:rgb(0, 0, 0);\n"
-                                    "border: 2px solid silver;\n"
-                                    "border-radius: 0px;\n"
-                                    "border-style: hidden hidden solid hidden;\n")
-        self.Button_2.setStyleSheet("color:rgb(0, 0, 0);\n"
-                                    "border: 2px solid silver;\n"
-                                    "border-radius: 0px;\n"
-                                    "border-style: hidden hidden solid hidden;\n")
-        self.Button_3.setStyleSheet("color:rgb(0, 0, 0);\n"
-                                    "border: 2px solid silver;\n"
-                                    "border-radius: 0px;\n"
-                                    "border-style: hidden hidden solid hidden;\n")
+        self.Button_1.setStyleSheet(
+            "color:rgb(0, 0, 0);\n"
+            "border: 2px solid silver;\n"
+            "border-radius: 0px;\n"
+            "border-style: hidden hidden solid hidden;\n"
+        )
+        self.Button_2.setStyleSheet(
+            "color:rgb(0, 0, 0);\n"
+            "border: 2px solid silver;\n"
+            "border-radius: 0px;\n"
+            "border-style: hidden hidden solid hidden;\n"
+        )
+        self.Button_3.setStyleSheet(
+            "color:rgb(0, 0, 0);\n"
+            "border: 2px solid silver;\n"
+            "border-radius: 0px;\n"
+            "border-style: hidden hidden solid hidden;\n"
+        )
         if button == 1:
             self.Page.setCurrentWidget(self.page_1)
-            self.Button_1.setStyleSheet("color:rgb(50, 108, 243);\n"
-                                        "border: 4px solid rgb(50, 108, 243);\n"
-                                        "border-radius: 0px;\n"
-                                        "border-style: hidden hidden solid hidden;\n")
+            self.Button_1.setStyleSheet(
+                "color:rgb(50, 108, 243);\n"
+                "border: 4px solid rgb(50, 108, 243);\n"
+                "border-radius: 0px;\n"
+                "border-style: hidden hidden solid hidden;\n"
+            )
         elif button == 2:
             self.Page.setCurrentWidget(self.page_2)
-            self.Button_2.setStyleSheet("color:rgb(50, 108, 243);\n"
-                                        "border: 4px solid rgb(50, 108, 243);\n"
-                                        "border-radius: 0px;\n"
-                                        "border-style: hidden hidden solid hidden;\n")
+            self.Button_2.setStyleSheet(
+                "color:rgb(50, 108, 243);\n"
+                "border: 4px solid rgb(50, 108, 243);\n"
+                "border-radius: 0px;\n"
+                "border-style: hidden hidden solid hidden;\n"
+            )
         elif button == 3:
             self.Page.setCurrentWidget(self.page_3)
-            self.Button_3.setStyleSheet("color:rgb(50, 108, 243);\n"
-                                        "border: 4px solid rgb(50, 108, 243);\n"
-                                        "border-radius: 0px;\n"
-                                        "border-style: hidden hidden solid hidden;\n")
+            self.Button_3.setStyleSheet(
+                "color:rgb(50, 108, 243);\n"
+                "border: 4px solid rgb(50, 108, 243);\n"
+                "border-radius: 0px;\n"
+                "border-style: hidden hidden solid hidden;\n"
+            )
 
     def select_adb(self):
         global file_dict
         file_style = "可执行文件(*.exe);;All Files(*)"
         _translate = QtCore.QCoreApplication.translate
-        fileName, fileType = QtWidgets.QFileDialog.getOpenFileName(self, "选取文件", getcwd(), file_style)
+        fileName, fileType = QtWidgets.QFileDialog.getOpenFileName(
+            self, "选取文件", getcwd(), file_style
+        )
         self.text_adb.setText(fileName)
         file_dict['adb_path'] = fileName
         self.begin("save_json", None)
@@ -217,7 +255,10 @@ class MainForm(QWidget, Ui_Form):
     def add_message(self, string):
         self.running_text.append(
             '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; '
-            'text-indent:0px;"><span style=" font-size:11pt; color:#808080;">{}</span></p>'.format(string))
+            'text-indent:0px;"><span style=" font-size:11pt; color:#808080;">{}</span></p>'.format(
+                string
+            )
+        )
 
     def change_check(self):
         global file_dict
@@ -269,7 +310,14 @@ class MainForm(QWidget, Ui_Form):
         self.begin("save_json", None)
 
     def kinetic_profile(self, nope="nope", operation=1):
-        kinetic_dict = {"0": "强化演习", "1": "资料采样", "2": "经验特训", "3": "经验特训-特种", "4": "云图回廊", "5": "防御演习"}
+        kinetic_dict = {
+            "0": "强化演习",
+            "1": "资料采样",
+            "2": "经验特训",
+            "3": "经验特训-特种",
+            "4": "云图回廊",
+            "5": "防御演习",
+        }
         level_dict = {"0": "high", "1": "mid", "2": "low"}
         if operation == 1:
             expend = 3 - self.comboBox_3.currentIndex()
