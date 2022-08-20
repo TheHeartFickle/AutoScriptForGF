@@ -14,6 +14,8 @@ class Node(object):
 
 class Graph(object):
     def __init__(self, List):
+        pass
 
 
 if __name__ == '__main__':
+    pass
