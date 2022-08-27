@@ -4,6 +4,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QCoreApplication, Qt, QThread, pyqtSignal
 from sys import argv, exit
 from os import getcwd, system
+from gc import collect
 from json import load, dump
 from time import time, localtime
 from sys import path
@@ -11,13 +12,13 @@ from sys import path
 path.append('modules')
 
 from Ui_mainwindow import Ui_Form
+import operation
 
 DEBUG = 0
 
 QCoreApplication.setAttribute(Qt.AA_DisableWindowContextHelpButton)
-cfg = './resource/Profile.json'
-with open(cfg, 'r', encoding='utf-8') as file:  # 从cfg.json配置文件读取配置
-    file_dict = load(file)
+profile = './resource/Profile.json'
+cfg = operation.Profile(profile)
 
 
 def get_time():
@@ -65,17 +66,27 @@ class MyThread(QThread):  # 建立一个任务线程类
     def run(self):  # 在启动线程后任务从这个函数里面开始执行
         print(self.message.type, self.message.message)
         if self.message.type == 'save_json':
-            with open(cfg, 'w', encoding='utf-8') as file:
-                dump(file_dict, file)
+            cfg.refresh()
+        elif self.message.type == 'script':
+            operation.init()
+            for i in range(self.message.message):
+                print('==========================================')
+                print(
+                    '===============第' + ' ' + str(i + 1) + ' ' + '次执行==============='
+                )
+                print('==========================================')
+                operation.main()
+        elif self.message.type == 'start':
+            self.signal.emit("start")
 
 
 class MainForm(QWidget, Ui_Form):
     def __init__(self):
-        global file_dict
+        global cfg
         super(MainForm, self).__init__()
         self.setupUi(self)
         self.setWindowTitle(
-            "AutoScriptForGF - ({})".format(file_dict['connect_address'])
+            "AutoScriptForGF - ({})".format(cfg.dict['connect_address'])
         )
         self.setWindowIcon(QIcon("resource\kar98k.ico"))
         self.setFixedSize(1005, 700)
@@ -87,15 +98,15 @@ class MainForm(QWidget, Ui_Form):
         if DEBUG == 1:
             self.Page.setCurrentWidget(self.page_debug)
 
-        self.lineEdit.setText(str(file_dict['time']))
-        self.text_adb.setText(file_dict['adb_path'])
-        self.text_address.setText(file_dict['connect_address'])
-        self.skip = file_dict['skip_strengthen']
-        self.comboBox.setCurrentIndex(file_dict['done_index'])
-        self.comboBox_5.setCurrentIndex(file_dict['produce_doll'])
-        self.comboBox_4.setCurrentIndex(file_dict['produce_equipment'])
-        self.kinetic_list_0 = file_dict['kinetic_profile_0']
-        self.kinetic_list_1 = file_dict['kinetic_profile_1']
+        self.lineEdit.setText(str(cfg.dict['time']))
+        self.text_adb.setText(cfg.dict['adb_path'])
+        self.text_address.setText(cfg.dict['connect_address'])
+        self.skip = cfg.dict['skip_strengthen']
+        self.comboBox.setCurrentIndex(cfg.dict['done_index'])
+        self.comboBox_5.setCurrentIndex(cfg.dict['produce_doll'])
+        self.comboBox_4.setCurrentIndex(cfg.dict['produce_equipment'])
+        self.kinetic_list_0 = cfg.dict['kinetic_profile_0']
+        self.kinetic_list_1 = cfg.dict['kinetic_profile_1']
         for ele in self.kinetic_list_0:
             self.textBrowser.append(ch_utf_tran(ele, False))
         self.remain = 12
@@ -137,11 +148,14 @@ class MainForm(QWidget, Ui_Form):
         self.thread.signal.connect(self.callback)
 
     def start(self):
+        operation.Flag_go_on = True
         self.begin("start", None)
+        self.begin("script", cfg.dict["time"])
         self.pushButton_6.setEnabled(False)
         self.pushButton_7.setEnabled(True)
 
     def stop(self):
+        operation.Flag_go_on = False
         self.begin("stop", None)
         self.pushButton_6.setEnabled(True)
 
@@ -165,28 +179,28 @@ class MainForm(QWidget, Ui_Form):
                     for ele in value:
                         if 48 <= ord(ele) <= 57 or ele == ':' or ele == '.':
                             pass
-                    file_dict[key] = value
+                    cfg.dict[key] = value
                     self.setWindowTitle(
-                        "AutoScriptForGF - ({})".format(file_dict['connect_address'])
+                        "AutoScriptForGF - ({})".format(cfg.dict['connect_address'])
                     )
                 except:
-                    self.text_address.setText(file_dict['connect_address'])
+                    self.text_address.setText(cfg.dict['connect_address'])
 
             elif key == 'time':
                 try:
-                    file_dict[key] = int(self.lineEdit.text())
+                    cfg.dict[key] = int(self.lineEdit.text())
                 except:
-                    self.lineEdit.setText(str(file_dict['time']))
+                    self.lineEdit.setText(str(cfg.dict['time']))
             else:
                 print("error")
                 return 0
         else:
             if may == "done":  # 脚本运行完成
-                file_dict['done_index'] = key
+                cfg.dict['done_index'] = key
             elif may == "produce_doll":
-                file_dict['produce_doll'] = key
+                cfg.dict['produce_doll'] = key
             elif may == "produce_equipment":
-                file_dict['produce_equipment'] = key
+                cfg.dict['produce_equipment'] = key
             elif may == "kinetic_index":
                 if self.comboBox_2.currentIndex() == 5:
                     self.comboBox_3.hide()
@@ -242,14 +256,14 @@ class MainForm(QWidget, Ui_Form):
             )
 
     def select_adb(self):
-        global file_dict
+        global cfg
         file_style = "可执行文件(*.exe);;All Files(*)"
         _translate = QtCore.QCoreApplication.translate
         fileName, fileType = QtWidgets.QFileDialog.getOpenFileName(
             self, "选取文件", getcwd(), file_style
         )
         self.text_adb.setText(fileName)
-        file_dict['adb_path'] = fileName
+        cfg.dict['adb_path'] = fileName
         self.begin("save_json", None)
         return 0
 
@@ -262,7 +276,7 @@ class MainForm(QWidget, Ui_Form):
         )
 
     def change_check(self):
-        global file_dict
+        global cfg
         value = ''
         value += str(int(self.checkBox.isChecked()))
         value += str(int(self.checkBox_2.isChecked()))
@@ -274,11 +288,11 @@ class MainForm(QWidget, Ui_Form):
         value += str(int(self.checkBox_8.isChecked()))
         value += str(int(self.checkBox_9.isChecked()))
         value += str(int(self.checkBox_10.isChecked()))
-        file_dict['check_list'] = value
+        cfg.dict['check_list'] = value
         self.begin("save_json", None)
 
     def check_init(self):
-        check = [file_dict['check_list']]
+        check = [cfg.dict['check_list']]
         judge = {"1": True, "0": False}
         for i in range(10):
             check.append(judge[check[0][i]])
@@ -307,7 +321,8 @@ class MainForm(QWidget, Ui_Form):
         self.checkBox_11.clicked.connect(self.skip_or_not)
 
     def skip_or_not(self, Flag):
-        file_dict['skip_strengthen'] = str(Flag)
+        cfg.dict['skip_strengthen'] = str(Flag)
+        operation.skip = Flag
         self.begin("save_json", None)
 
     def kinetic_profile(self, nope="nope", operation=1):

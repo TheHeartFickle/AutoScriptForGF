@@ -4,6 +4,7 @@
 AutoScriptForGF/*
 src/__pycache__/*
 modules/__pycache__/*
+<<<<<<< HEAD
 AutoScriptForGF.*
 modules.7z
 *.pyc
@@ -20,3 +21,6 @@ AutoScriptForGF/*
 src/__pycache__/*
 modules/__pycache__/*
 >>>>>>> bc146b0 (微调)
+=======
+AutoScriptForGF.*
+>>>>>>> e1937d4 (临时实装13-4，抽象玩家未完成)

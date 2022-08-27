@@ -1,4 +1,4 @@
-from modules.base import *
+from base import *
 
 first_humanoid = (200, 445)  # 第一个待选人形位置
 distance = 315  # 狗粮水平间距
@@ -9,6 +9,7 @@ auto_select = (2125, 1225)  # 智能选择/确认
 strengthen_confirm = (2130, 1360)
 recycle_confirm = (2060, 1525)  # 回收按钮
 recycle_confirm_again = (1385, 1330)
+go_out_to_battle = (2060, 1435)
 logistics_confirm = (1345, 1100)  # 继续后勤支援
 go_to_fight = (1675, 975)
 achievement_confirm = (1400, 1500)
@@ -18,11 +19,6 @@ mission_pt2 = (440, 250)
 ep_14 = (440, 1500)
 in_mission = False
 
-if file_dict['skip_strengthen'] == "True":
-    skip_strengthen = True
-else:
-    skip_strengthen = False
-
 
 def recycle_():
     print(get_time() + "Start recycle_")
@@ -31,9 +27,20 @@ def recycle_():
     pos_stand = waiting('stand_by')
     print('进入工厂')
     had_recycle = False  # 2星人形是否检查回收
+    cfg = '{}/Profile.json'.format(path)
+
+    system("cd ..")
+    with open(cfg, 'r', encoding='utf-8') as file:  # 从Profile.json配置文件读取配置
+        file_dict = load(file)
+    # print("file:", file_dict['skip_strengthen'])
+    if file_dict['skip_strengthen'] == "True":
+        skip = True
+    else:
+        skip = False
     while 1:
-        if skip_strengthen:
-            print('跳过强化')
+        # print("mem:", skip)
+        if skip == True:
+            print("跳过强化")
             break
         print('强化-选择待强化人形')
         Click(pos_stand)
@@ -66,7 +73,7 @@ def recycle_():
                 loc = find_image('confirm', True)
                 if loc is not None:  # 人形不够强化
                     print('强化-狗粮不足')
-                    # Click((loc[0] + int(mult * (distance + 70)), loc[1]))
+                    Click(loc)
                     sleep(2)
                     Click(find_image('retire'))
                     sleep(2)
@@ -163,19 +170,9 @@ def go_fight():
     while 1:
         loc = find_image(img_dict['campaign'], True)
         if loc is not None:
-            # if not in_mission:
-            #     Click(mission, True)
-            #     system(
-            #         'adb shell input swipe {} {} {} {}'.format(int(mult * mission_pt1[0]), int(mult * mission_pt1[1]),
-            #                                                    int(mult * mission_pt2[0]), int(mult * mission_pt2[1])))
-            #     sleep(2)
-            #     system(
-            #         'adb shell input swipe {} {} {} {}'.format(int(mult * mission_pt1[0]), int(mult * mission_pt1[1]),
-            #                                                    int(mult * mission_pt2[0]), int(mult * mission_pt2[1])))
-            #     sleep(3)
-            #     Click(ep_14, True)
-            #     in_mission = True
             break
+        Click(go_out_to_battle, True)
+        sleep(1)
         Click(logistics_confirm, True)
         sleep(1)
         Click(achievement_confirm, True)
@@ -189,4 +186,4 @@ def go_fight():
 if __name__ == '__main__':
     # waiting('stand_by', 0.8)
     # recycle_()
-    pass
+    go_fight()

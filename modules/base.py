@@ -1,11 +1,12 @@
 from ast import Not
 from gc import collect
 from os import system
-from json import dump, load
+from json import dump, load, dumps
 from os import listdir, system  # , chdir
 from random import random
 from subprocess import PIPE, Popen
-import sys
+
+# import sys
 from time import localtime, sleep, time
 
 from cv2 import (
@@ -32,6 +33,9 @@ from cv2 import (
     rectangle,
     resizeWindow,
     waitKey,
+    bitwise_not,
+    threshold,
+    THRESH_BINARY,
 )
 from numpy import asarray, ones, uint8, zeros
 
@@ -40,26 +44,49 @@ from numpy import asarray, ones, uint8, zeros
 # adb shell input keyevent 3 #返回桌面
 # adb shell input keyevent 4
 
+
+class Profile(object):
+    def __init__(self, Path=None) -> None:
+        self.path = Path
+        if Path is not None:
+            with open(Path, 'r', encoding='utf-8') as fr:
+                self.dict = load(fr)
+        else:
+            self.dict = None
+
+    def refresh(self):
+        with open(self.path, 'w', encoding='utf-8') as fr:
+            dump(self.dict, fr)
+
+    def show(self):
+        return dumps(self.dict, ensure_ascii=False, indent=4)
+
+
+Mult_base = None
 shape = ()
+
 path = './resource'
 photo_path = '{}/template_photo'.format(path)
-cfg = '{}/Profile.json'.format(path)
+profile = '{}/Profile.json'.format(path)
 
-system("cd ..")
-with open(cfg, 'r', encoding='utf-8') as file:  # 从Profile.json配置文件读取配置
-    file_dict = load(file)
+cfg = Profile(profile)  # 从Profile.json配置文件读取配置
 
-adb_path = file_dict['adb_path']
-address = file_dict['connect_address']
+adb_path = cfg.dict['adb_path']
+address = cfg.dict['connect_address']
+if cfg.dict['skip_strengthen'] == 'True':
+    skip = True
+else:
+    skip = False
+
 file_name = listdir(photo_path)
 img_dict = {}  # 保存图片的字典，key为文件名
 
-for i in range(len(file_name)):
-    img_name = file_name[i][:-4]
-    img = imread(photo_path + '/' + file_name[i])
-    img_dict[img_name] = img
-
-system("cd modules")
+for ele in file_name:
+    if ele[-4:] == '.png':
+        img_name = ele[:-4]
+        # print(f"{photo_path}/{ele}")
+        img = imread(f"{photo_path}/{ele}")
+        img_dict[img_name] = img
 
 
 class CV_image(object):
@@ -82,13 +109,15 @@ class CV_image(object):
     def find(
         self, template, threshold=None, **area
     ):  # areas仅支持输入左上角和右下角的坐标(x1,y1),(x2,y2)->[y1:y2,x1:x2]
-
+        self.image = get_image()
         area_flag = area != {}
         if area_flag:
             areas = area['areas']
             img_bgr = self.image[areas[0][1] : areas[1][1], areas[0][0] : areas[1][0]]
         else:
             img_bgr = self.image
+        # mid = CV_image(img_bgr)
+        # mid.show("img0")
         width, height = img_bgr.shape[:2][::-1]
         img_gray = cvtColor(img_bgr, COLOR_BGR2GRAY)
         sift = SIFT_create()  # 准备工作
@@ -163,8 +192,25 @@ class CV_image(object):
         else:
             return int(x + width / 2), int(y + height / 2)
 
+    def wait(self, template, threshold=None, **area):
+        area_flag = area != {}
 
-def get_image(color=True):  # 把模拟器的截图传送至img
+        while 1:
+            if area_flag:
+                areas = area['areas']
+                # print(template, threshold, areas)
+                res = self.find(template, threshold, areas)
+            else:
+                # print(template, threshold)
+                res = self.find(template, threshold)
+            if res is None:
+                sleep(3)
+                continue
+            else:
+                return res
+
+
+def get_image(gray=False):  # 把模拟器的截图传送至img
     global shape
     while 1:
         out = Popen(
@@ -176,12 +222,14 @@ def get_image(color=True):  # 把模拟器的截图传送至img
             out[0] = out[0]
             break
         except:
+            print("try again")
             continue
     image = imdecode(out, IMREAD_COLOR)
-    if not color:
+    if gray:
         image = cvtColor(image, COLOR_BGR2GRAY)
     if shape == ():
         shape = (image.shape[1], image.shape[0])
+        Mult_base = shape[1] / 1728
     return image
 
 
@@ -216,13 +264,38 @@ def go_back():
     system("{} -s {} shell input keyevent BACK".format(adb_path, address))
 
 
+IMAGE = CV_image()
+
+
+def find_image(img_name, Flag=False):
+    if type(img_name) == str:
+        img = img_dict[img_name]
+    else:
+        img = img_name
+    if Flag:
+        res = IMAGE.find(img, threshold=0.15)
+    else:
+        res = IMAGE.find(img)
+    return res
+
+
+def waiting(img_name):
+    if type(img_name) == str:
+        img = img_dict[img_name]
+    else:
+        img = img_name
+    res = IMAGE.wait(img, threshold=0.15)
+    return res
+
+
 # pix_0_hit = (615, 1160)  # 这两个点用于框选打手弹药口粮信息
 # pix_1_hit = (910, 1270)
 # pix_0_tank = (950, 1100)  # 这两个点用于框选抗伤人形血量信息
 # pix_1_tank = (1240, 1160)
 if __name__ == '__main__':
     start = time()
-    img = CV_image(get_image())
+    img = CV_image()
+    # img.show("img", (800, 600))
     print(img.find(img_dict["icon_vv"], areas=((270, 430), (570, 1130))))
     time0 = time() - start
     print("time0:", time0)
