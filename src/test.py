@@ -1,10 +1,10 @@
-def func(n):
-    a, b = 0, 1
-    for _ in range(n):
-        yield a
-        a, b = b, a + b
+import json
 
+D = {"a": None}
+F = {}
+with open("test.json", "r", encoding='utf-8') as f:
+    # json.dump(D, f)
+    F = json.load(f)
 
-for i in func(10):
-    print(i, end=' ')
+print(F)
 

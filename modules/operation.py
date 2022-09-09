@@ -68,6 +68,7 @@ def enter_13_4():  # 进入13-4，如果没有初始化则初始化棋盘并点�
         enter_13_4()
     print('操作:正常进入13-4')
     waiting('start_fight')
+    Area(int(Mult * move0), int(Mult * move1)).swipe(start="sw", end="ne")
     if not had_find:
         print('操作:寻找机场和指挥部')
         pos_airport = find_image('airport')
@@ -171,6 +172,8 @@ def change_humanoid():  # 换打手
             print('操作:回到棋盘')
             Click(go_back, Mult)
             print(get_time() + "end   uzi2vv")
+    waiting('start_fight')
+    Area(int(Mult * move0), int(Mult * move1)).swipe(start="sw", end="ne")
     print(get_time() + ' End  change_humanoid')
 
 
@@ -182,6 +185,7 @@ def plan():  # 计划模式
     print('操作:点击重型机场')
     Click(waiting('confirm'))
     print('操作:确认补给打手队')
+    sleep(2)
     Click(pos_command)
     sleep_(2)
     print('操作:点击指挥部')
@@ -257,18 +261,17 @@ def main():
 
 
 if __name__ == '__main__':
-    # init()
-    # for i in range(52):
-    #     print('==========================================')
-    #     print('===============第' + ' ' + str(i + 1) + ' ' + '次执行===============')
-    #     print('==========================================')
-    #     try:
-    #         main()
-    #     except MemoryError:
-    #         print("memoryError")
-    #     except:
-    #         print("error")
+    init()
+    for _ in range(52):
+        print('==========================================')
+        print('===============第' + ' ' + str(_ + 1) + ' ' + '次执行===============')
+        print('==========================================')
+        main()
+        # try:
+        #     main()
+        # except MemoryError:
+        #     print("memoryError")
+        # except:
+        #     print("error")
     #     else:
     #         collect()
-    init()
-    main()

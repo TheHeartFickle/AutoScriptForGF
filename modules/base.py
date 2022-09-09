@@ -1,5 +1,6 @@
 from ast import Not
 from gc import collect
+from msilib.schema import Error
 from os import system
 from json import dump, load, dumps
 from os import listdir, system  # , chdir
@@ -44,6 +45,9 @@ from numpy import asarray, ones, uint8, zeros
 # adb shell input keyevent 3 #返回桌面
 # adb shell input keyevent 4
 
+move0 = (1152, 864)
+move1 = (1580, 744)
+
 
 class Profile(object):
     def __init__(self, Path=None) -> None:
@@ -52,7 +56,7 @@ class Profile(object):
             with open(Path, 'r', encoding='utf-8') as fr:
                 self.dict = load(fr)
         else:
-            self.dict = None
+            raise EnvironmentError("请传路径")
 
     def refresh(self):
         with open(self.path, 'w', encoding='utf-8') as fr:
@@ -62,12 +66,71 @@ class Profile(object):
         return dumps(self.dict, ensure_ascii=False, indent=4)
 
 
+class Initialization(Profile):
+    def __init__(self) -> None:
+        pass
+
+
+class Point(object):
+    def __init__(self, Pos=None) -> None:
+        self.point = ()
+        if Pos is not None:
+            self.point = Pos
+
+    def __call__(self, *args, **kwds):
+        return self.point
+
+    def click(self, Mult=None):
+        if Mult is None:
+            Click(self.point, 1)
+        else:
+            Click(self.point, Mult)
+
+
+class Area(object):
+    def __init__(self, Pos1=None, Pos2=None) -> None:
+        self.nw = None  # 左上角
+        self.se = None  # 右下角
+        self.ne = None  # 右上角
+        self.sw = None  # 左下角
+        if Pos1 is not None and Pos2 is not None:
+            self.nw = list(Pos1)
+            self.se = list(Pos2)
+            if Pos1[0] > Pos2[0]:  # Pos1的x坐标更大更靠右
+                self.nw[0], self.se[0] = self.se[0], self.nw[0]
+            if Pos1[1] > Pos2[1]:  # Pos1的y坐标更大更靠下
+                self.nw[1], self.se[1] = self.se[1], self.nw[1]
+            self.ne = [self.se[0], self.nw[1]]
+            self.sw = [self.nw[0], self.se[1]]
+
+    def direction(self, direction):
+        if direction == "nw":
+            return self.nw
+        elif direction == "se":
+            return self.se
+        elif direction == "ne":
+            return self.ne
+        elif direction == "sw":
+            return self.sw
+
+    def __call__(self, *args, **kwds):
+        return tuple(self.nw), tuple(self.se)
+
+    def swipe(self, **kwds):
+        point1 = self.direction(kwds["start"])
+        point2 = self.direction(kwds["end"])
+        # print(point1, point2)
+        system(
+            f"{adb_path} shell input swipe {point1[0]} {int(point1[1])} {int(point2[0])} {point2[1]}"
+        )
+
+
 Mult_base = None
 shape = ()
 
 path = './resource'
-photo_path = '{}/template_photo'.format(path)
-profile = '{}/Profile.json'.format(path)
+photo_path = f'{path}/template_photo'
+profile = f'{path}/Profile.json'
 
 cfg = Profile(profile)  # 从Profile.json配置文件读取配置
 
@@ -78,8 +141,9 @@ if cfg.dict['skip_strengthen'] == 'True':
 else:
     skip = False
 
+# 保存图片的字典，key为文件名
 file_name = listdir(photo_path)
-img_dict = {}  # 保存图片的字典，key为文件名
+img_dict = {}
 
 for ele in file_name:
     if ele[-4:] == '.png':
@@ -96,7 +160,10 @@ class CV_image(object):
     def shape(self):
         return self.image.shape[:2][::-1]  # 返回宽高
 
-    def show(self, window_name, window_size=None):
+    def show(self, window_name, window_size=None, *areas):
+        print(areas)
+        if areas != {}:
+            print(True)
         namedWindow(window_name, WINDOW_KEEPRATIO)
         if window_size is not None:
             resizeWindow(window_name, window_size[0], window_size[1])
@@ -127,18 +194,22 @@ class CV_image(object):
         # 原理：根据模板和原图的灰度图对原图的匹配值进行计算(maybe
 
         if kp1 is None or kp2 is None or des1 is None or des2 is None:
-            del img_gray, sift
+            del img_gray, img_bgr, sift
             return None  # 无匹配值
 
         FLANN_INDEX_KDTREE = 0
-        indexParams = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
-        searchParams = dict(checks=50)
-        flann = FlannBasedMatcher(indexParams, searchParams)
-        matches = flann.knnMatch(des1, des2, k=2)
-        matchesMask = [[0, 0] for i in range(len(matches))]
-        for i, (m, n) in enumerate(matches):
-            if m.distance < 0.7 * n.distance:  # 通过0.7系数来决定匹配的有效关键点数量
-                matchesMask[i] = [1, 0]
+        try:
+            indexParams = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
+            searchParams = dict(checks=50)
+            flann = FlannBasedMatcher(indexParams, searchParams)
+            matches = flann.knnMatch(des1, des2, k=2)
+            matchesMask = [[0, 0] for i in range(len(matches))]
+            for i, (m, n) in enumerate(matches):
+                if m.distance < 0.7 * n.distance:  # 通过0.7系数来决定匹配的有效关键点数量
+                    matchesMask[i] = [1, 0]
+        except:
+            print(indexParams, searchParams)
+            exit()
 
         # drawPrams = dict(matchColor=(0, 255, 0), singlePointColor=(255, 0, 0), matchesMask=matchesMask, flags=0)
         # img3 = drawMatchesKnn(template, kp1, img_gray, kp2, matches, None, **drawPrams)
@@ -213,9 +284,7 @@ class CV_image(object):
 def get_image(gray=False):  # 把模拟器的截图传送至img
     global shape
     while 1:
-        out = Popen(
-            '{} -s {} shell screencap -p'.format(adb_path, address), stdout=PIPE
-        )
+        out = Popen(f'{adb_path} -s {address} shell screencap -p', stdout=PIPE)
         out = out.stdout.read().replace(b'\r\n', b'\n')
         out = asarray(bytearray(out), dtype='uint8')
         try:
@@ -248,20 +317,30 @@ def get_time():
     )
 
 
-def Click(Tuple, mult=1):
+def Click(Tuple, mult_=None):
+    if mult_ is None:
+        mult = 1
+    else:
+        mult = mult_
     x0, y0 = Tuple[0], Tuple[1]
     if x0 > shape[0] or y0 > shape[1]:
-        pass
+        print("点不在屏幕内")
     else:
         system(
-            "{} -s {} shell input tap {} {}".format(
-                adb_path, address, int(x0 * mult), int(y0 * mult)
-            )
+            f"{adb_path} -s {address} shell input tap {int(x0 * mult)} {int(y0 * mult)}"
         )
 
 
 def go_back():
-    system("{} -s {} shell input keyevent BACK".format(adb_path, address))
+    system(f"{adb_path} -s {address} shell input keyevent BACK")
+
+
+def board_init():
+    pos = find_image('command')
+    if pos[0] < 1358 * Mult_base or pos > 1162 * Mult_base:
+        # 1155 880
+        Area(int(Mult_base * move0), int(Mult_base * move1)).swipe(start="sw", end="ne")
+    print(pos)
 
 
 IMAGE = CV_image()
@@ -292,7 +371,9 @@ def waiting(img_name):
 # pix_1_hit = (910, 1270)
 # pix_0_tank = (950, 1100)  # 这两个点用于框选抗伤人形血量信息
 # pix_1_tank = (1240, 1160)
-if __name__ == '__main__':
+
+
+def test1():
     start = time()
     img = CV_image()
     # img.show("img", (800, 600))
@@ -306,3 +387,20 @@ if __name__ == '__main__':
     # print("time1:", time1)
     # print(round(100 * (time0 / time1), 3), "%")
     print("Done")
+
+
+def test2():
+    point1 = (1152, 864)
+    point2 = (1602, 754)
+    # point1, point2 = point2, point1
+    system(
+        f"{adb_path} shell input swipe {point1[0]} {point1[1]} {point2[0]} {point2[1]}"
+    )
+
+
+if __name__ == '__main__':
+    ar = Area((1152, 864), (1602, 744))
+    ar.swipe(start="sw", end="ne")
+    # img = CV_image(get_image())
+    # img.show("img", (800, 600), areas=ar())
+
