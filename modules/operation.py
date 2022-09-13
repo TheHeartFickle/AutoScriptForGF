@@ -48,6 +48,15 @@ def init():
     return Mult
 
 
+def board_init():
+    pos = find_image('command')
+    if pos[0] < 1358 * Mult or pos[1] > 1162 * Mult:
+        print("init")
+        point1 = (int(Mult * move0[0]), int(Mult * move0[1]))
+        point2 = (int(Mult * move1[0]), int(Mult * move1[1]))
+        Area(point1, point2).swipe(start="sw", end="ne")
+
+
 def enter_13_4():  # 进入13-4，如果没有初始化则初始化棋盘并点击重型机场直到部署界面出现
     global pos_airport, pos_command, had_find, spacing, Mult
     print(get_time() + "Start enter_13-4")
@@ -68,7 +77,7 @@ def enter_13_4():  # 进入13-4，如果没有初始化则初始化棋盘并点�
         enter_13_4()
     print('操作:正常进入13-4')
     waiting('start_fight')
-    Area(int(Mult * move0), int(Mult * move1)).swipe(start="sw", end="ne")
+    board_init()
     if not had_find:
         print('操作:寻找机场和指挥部')
         pos_airport = find_image('airport')
@@ -173,7 +182,7 @@ def change_humanoid():  # 换打手
             Click(go_back, Mult)
             print(get_time() + "end   uzi2vv")
     waiting('start_fight')
-    Area(int(Mult * move0), int(Mult * move1)).swipe(start="sw", end="ne")
+    board_init()
     print(get_time() + ' End  change_humanoid')
 
 

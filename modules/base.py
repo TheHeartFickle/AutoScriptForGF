@@ -324,7 +324,7 @@ def Click(Tuple, mult_=None):
         mult = mult_
     x0, y0 = Tuple[0], Tuple[1]
     if x0 > shape[0] or y0 > shape[1]:
-        print("点不在屏幕内")
+        print(Tuple, "点不在屏幕内")
     else:
         system(
             f"{adb_path} -s {address} shell input tap {int(x0 * mult)} {int(y0 * mult)}"
@@ -333,14 +333,6 @@ def Click(Tuple, mult_=None):
 
 def go_back():
     system(f"{adb_path} -s {address} shell input keyevent BACK")
-
-
-def board_init():
-    pos = find_image('command')
-    if pos[0] < 1358 * Mult_base or pos > 1162 * Mult_base:
-        # 1155 880
-        Area(int(Mult_base * move0), int(Mult_base * move1)).swipe(start="sw", end="ne")
-    print(pos)
 
 
 IMAGE = CV_image()
@@ -399,8 +391,9 @@ def test2():
 
 
 if __name__ == '__main__':
-    ar = Area((1152, 864), (1602, 744))
-    ar.swipe(start="sw", end="ne")
+    # ar = Area((1152, 864), (1602, 744))
+    # ar.swipe(start="sw", end="ne")
     # img = CV_image(get_image())
     # img.show("img", (800, 600), areas=ar())
+    pass
 
