@@ -8,6 +8,7 @@ modules/__pycache__/*
 <<<<<<< HEAD
 AutoScriptForGF.*
 modules.7z
+<<<<<<< HEAD
 *.pyc
 =======
 AutoScriptForGF
@@ -29,3 +30,6 @@ AutoScriptForGF.*
 AutoScriptForGF.*
 modules.7z
 >>>>>>> 87573c3 (代码暂存)
+=======
+*.pyc
+>>>>>>> e05e1e0 (分支提交-v0.0.1)
