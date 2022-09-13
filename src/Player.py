@@ -1,48 +1,149 @@
-from PyQt5.QtCore import QThread, pyqtSignal, QObject
-from time import sleep
+from gc import collect
+from os import system
+from json import dump, load, dumps
+from os import listdir, system
+from random import random
+from subprocess import PIPE, Popen
+from unittest.mock import patch
+from numpy import asarray, ones, uint8, zeros
+from time import localtime, sleep, time
+from PyQt5.QtCore import QThread, pyqtSignal
 
-end_Click = (640, 240)  # 收尾用点击点
-echelon_01 = (120, 560)  # 部署界面梯队一位置
-echelon_02 = (120, 720)  # 部署界面梯队二位置
-echelon_12 = (120, 400)  # 梯队编成界面梯队二位置
-pix_0_hit = (615, 1160)  # 这两个点用于框选打手弹药口粮信息
-pix_1_hit = (910, 1270)
-pix_0_tank = (950, 1100)  # 这两个点用于框选抗伤人形血量信息
-pix_1_tank = (1240, 1160)
-repair = (1390, 1370)  # 人形修复
-repair_confirm = (1745, 1200)  # 人形修复确认
-supply = (2110, 1225)  # 补给
-planning = (135, 1500)  # 计划模式
-spacing = 130  # 路径点水平(垂直)距离
-
-first_humanoid = (200, 445)  # 第一个待选人形位置
-distance = 275  # 狗粮水平间距
-rec_13_4 = (1610, 980)  # 13-4后仓库满了拆狗粮
-go_back = (180, 95)  # 返回
-recycle_humanoid = (165, 750)  # 资源回收位置
-auto_select = (2125, 1225)  # 智能选择/确认
-strengthen_confirm = (2130, 1360)
-recycle_confirm = (2060, 1525)  # 回收按钮
-recycle_confirm_again = (1090, 1345)
-logistics_confirm = (1345, 1100)  # 继续后勤支援
-go_to_fight = (1675, 975)
-pos_airport, pos_command = [0, 0], [0, 0]  # 机场，指挥部
-had_find = False
-in_select_echelon = False
-
-mult = 114514
+from cv2 import (
+    CHAIN_APPROX_SIMPLE,
+    COLOR_BGR2GRAY,
+    IMREAD_COLOR,
+    RETR_TREE,
+    WINDOW_KEEPRATIO,
+    FlannBasedMatcher,
+    SIFT_create,
+    boundingRect,
+    circle,
+    contourArea,
+    cvtColor,
+    destroyAllWindows,
+    destroyWindow,
+    dilate,
+    drawMatchesKnn,
+    findContours,
+    imdecode,
+    imread,
+    imshow,
+    namedWindow,
+    rectangle,
+    resizeWindow,
+    waitKey,
+    bitwise_not,
+    threshold,
+    THRESH_BINARY,
+)
 
 
-class Node(object):
-    def __init__(self):
-        self.info = None
-        self.left = None
-        self.right = None
+class SettingInitialization(object):
+    def __init__(self, Path=None) -> None:
+        self.path = Path
+        self.dict = None
+        self.read()
+
+    def get_details(self):
+        self.adb_path = self.dict['adb_path']
+        self.address = self.dict['address']
+        self.skip_strengthen = self.dict['skip_strengthen']
+        self.check_list = self.dict['check_list']
+        self.time = self.dict['time']
+        self.done_index = self.dict['done_index']
+        self.produce_doll = self.dict['produce_doll']
+        self.produce_equipment = self.dict['produce_equipment']
+        self.kinetic_profile_0 = self.dict['kinetic_profile_0']
+        self.kinetic_profile_1 = self.dict['kinetic_profile_1']
+        self.shape = self.dict['2304x1728']
+
+    def read(self):
+        if self.path is not None:
+            with open(self.path, 'r', encoding='utf-8') as fr:
+                self.dict = load(fr)
+        else:
+            raise EnvironmentError("请传路径")
+
+    def refresh(self, **kwargs):
+        try:
+            key = kwargs['key']
+            self.dict[key] = self.key
+        except:
+            pass
+        with open(self.path, 'w', encoding='utf-8') as fr:
+            dump(self.dict, fr)
+
+    def show(self):
+        return dumps(self.dict, ensure_ascii=False, indent=4)
 
 
-class Tree(object):
-    def __init__(self):
-        self.root = None
+# def Click(Tuple, mult_=None):
+#     if mult_ is None:
+#         mult = 1
+#     else:
+#         mult = mult_
+#     x0, y0 = Tuple[0], Tuple[1]
+#     if x0 > shape[0] or y0 > shape[1]:
+#         print(Tuple, "点不在屏幕内")
+#     else:
+#         system(
+#             f"{adb_path} -s {address} shell input tap {int(x0 * mult)} {int(y0 * mult)}"
+#         )
+
+
+# class Point(object):
+#     def __init__(self, Pos=None) -> None:
+#         self.point = ()
+#         if Pos is not None:
+#             self.point = Pos
+
+#     def __call__(self, *args, **kwds):
+#         return self.point
+
+#     def click(self, Mult=None):
+#         if Mult is None:
+#             Click(self.point, 1)
+#         else:
+#             Click(self.point, Mult)
+
+
+# class Area(object):
+#     def __init__(self, Pos1=None, Pos2=None) -> None:
+#         self.nw = None  # 左上角
+#         self.se = None  # 右下角
+#         self.ne = None  # 右上角
+#         self.sw = None  # 左下角
+#         if Pos1 is not None and Pos2 is not None:
+#             self.nw = list(Pos1)
+#             self.se = list(Pos2)
+#             if Pos1[0] > Pos2[0]:  # Pos1的x坐标更大更靠右
+#                 self.nw[0], self.se[0] = self.se[0], self.nw[0]
+#             if Pos1[1] > Pos2[1]:  # Pos1的y坐标更大更靠下
+#                 self.nw[1], self.se[1] = self.se[1], self.nw[1]
+#             self.ne = [self.se[0], self.nw[1]]
+#             self.sw = [self.nw[0], self.se[1]]
+
+#     def direction(self, direction):
+#         if direction == "nw":
+#             return self.nw
+#         elif direction == "se":
+#             return self.se
+#         elif direction == "ne":
+#             return self.ne
+#         elif direction == "sw":
+#             return self.sw
+
+#     def __call__(self, *args, **kwds):
+#         return tuple(self.nw), tuple(self.se)
+
+#     def swipe(self, **kwds):
+#         point1 = self.direction(kwds["start"])
+#         point2 = self.direction(kwds["end"])
+#         # print(point1, point2)
+#         system(
+#             f"{adb_path} shell input swipe {point1[0]} {int(point1[1])} {int(point2[0])} {point2[1]}"
+#         )
 
 
 class MySignal(object):
@@ -70,39 +171,13 @@ class MyThread(QThread):  # 建立一个任务线程类
         self.message = Input
 
     def run(self):  # 在启动线程后任务从这个函数里面开始执行
-        print(self.message.type, self.message.message)
+        pass
 
 
 class Player(object):
     def __init__(self):
         self.name = None
         self.running = False
-
-        self.My_signal = MySignal("image_name", "point")
-        self.My_thread = MyThread()  # 实例化自己建立的任务线程类
-
-        self.thread = QThread()
-        # self.thread.moveToThread(test)
-        # self.thread.run()
-
-        self.My_thread.signal.connect(self.callback)  # 设置任务线程发射信号触发的函数
-        self.My_thread.signal_back.emit(self.My_signal)
-
-    def starting(self, Type=None, Message=None):
-        self.My_signal.valuation(Type, Message)
-        self.My_thread.signal_back.emit(self.My_signal)
-        self.My_thread.start()  # 启动任务线程
-
-    def run(self):
-        self.running = True
-
-    def stop(self):
-        self.running = False
-
-    def callback(self, Text):  # 这里的 i 就是任务线程传回的数据
-        print(Text)
-        if Text == 'del_self':
-            del self
 
 
 def test(**kwargs):
@@ -116,7 +191,5 @@ def test(**kwargs):
 
 
 if __name__ == '__main__':
-    pl = Player()
-    pl.thread.moveToThread(test)
-    pl.thread.run()
-    test()
+    path = 'resource/Profile.json'
+    s = SettingInitialization(path)

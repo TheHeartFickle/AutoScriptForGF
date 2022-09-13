@@ -8,11 +8,8 @@ from gc import collect
 from json import load, dump
 from time import time, localtime
 from sys import path
-
-path.append('src')
-
-from Ui_mainwindow import Ui_Form
-import operation
+from src.Ui_mainwindow import Ui_Form
+import src.operation as operation
 
 DEBUG = 0
 

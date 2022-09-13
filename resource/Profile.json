@@ -1,6 +1,6 @@
 {
     "adb_path": "E:/Application/ys/Nox/bin/nox_adb.exe",
-    "connect_address": "127.0.0.1:62026",
+    "address": "127.0.0.1:62026",
     "skip_strengthen": "False",
     "check_list": "0000000000",
     "time": 52,
@@ -8,5 +8,6 @@
     "produce_doll": 0,
     "produce_equipment": 0,
     "kinetic_profile_0": [],
-    "kinetic_profile_1": []
+    "kinetic_profile_1": [],
+    "shape": "2304x1728"
 }

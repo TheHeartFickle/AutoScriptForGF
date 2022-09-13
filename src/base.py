@@ -135,7 +135,7 @@ profile = f'{path}/Profile.json'
 cfg = Profile(profile)  # 从Profile.json配置文件读取配置
 
 adb_path = cfg.dict['adb_path']
-address = cfg.dict['connect_address']
+address = cfg.dict['address']
 if cfg.dict['skip_strengthen'] == 'True':
     skip = True
 else:
