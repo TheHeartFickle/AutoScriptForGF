@@ -1,4 +1,5 @@
-from modules.base import *
+from PyQt5.QtCore import QThread, pyqtSignal, QObject
+from time import sleep
 
 end_Click = (640, 240)  # 收尾用点击点
 echelon_01 = (120, 560)  # 部署界面梯队一位置
@@ -80,6 +81,10 @@ class Player(object):
         self.My_signal = MySignal("image_name", "point")
         self.My_thread = MyThread()  # 实例化自己建立的任务线程类
 
+        self.thread = QThread()
+        # self.thread.moveToThread(test)
+        # self.thread.run()
+
         self.My_thread.signal.connect(self.callback)  # 设置任务线程发射信号触发的函数
         self.My_thread.signal_back.emit(self.My_signal)
 
@@ -98,3 +103,20 @@ class Player(object):
         print(Text)
         if Text == 'del_self':
             del self
+
+
+def test(**kwargs):
+    if kwargs["test"] == 1:
+        tar = "out"
+    else:
+        tar = "in"
+    for i in range(10):
+        sleep(1)
+        print(tar + i)
+
+
+if __name__ == '__main__':
+    pl = Player()
+    pl.thread.moveToThread(test)
+    pl.thread.run()
+    test()

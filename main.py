@@ -9,7 +9,7 @@ from json import load, dump
 from time import time, localtime
 from sys import path
 
-path.append('modules')
+path.append('src')
 
 from Ui_mainwindow import Ui_Form
 import operation
