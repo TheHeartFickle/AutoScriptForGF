@@ -1,0 +1,6 @@
+AutoScriptForGF/*
+src/__pycache__/*
+modules/__pycache__/*
+AutoScriptForGF.*
+modules.7z
+*.pyc
