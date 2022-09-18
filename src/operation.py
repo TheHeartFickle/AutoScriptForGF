@@ -49,8 +49,10 @@ def init():
 
 
 def board_init():
-    pos = find_image('command')
-    if pos[0] < 1358 * Mult or pos[1] > 1162 * Mult:
+    pos_airport = find_image('airport')
+    pos_command = find_image('command')
+    print(pos_airport, pos_command)
+    if pos_airport[1] < pos_command[1]:
         print("init")
         point1 = (int(Mult * move0[0]), int(Mult * move0[1]))
         point2 = (int(Mult * move1[0]), int(Mult * move1[1]))
@@ -84,7 +86,7 @@ def enter_13_4():  # 进入13-4，如果没有初始化则初始化棋盘并点�
         pos_command = find_image('command')
         spacing = int((pos_command[0] - pos_airport[0]) / 6.717)
         had_find = True
-        # print("spacing:%d" % spacing)
+        print("spacing:%d" % spacing)
     print(get_time() + " End  enter_13_4")
 
 
