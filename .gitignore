@@ -1,0 +1,38 @@
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+AutoScriptForGF/*
+src/__pycache__/*
+<<<<<<< HEAD
+modules/__pycache__/*
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4f78b7 (重构代码)
+AutoScriptForGF.*
+modules.7z
+<<<<<<< HEAD
+*.pyc
+=======
+AutoScriptForGF
+>>>>>>> 3863c8b (新增批处理文件)
+=======
+AutoScriptForGF/
+src\__pycache__
+modules\__pycache__
+>>>>>>> 89d7823 (-a)
+=======
+AutoScriptForGF/*
+src/__pycache__/*
+modules/__pycache__/*
+>>>>>>> bc146b0 (微调)
+=======
+AutoScriptForGF.*
+>>>>>>> e1937d4 (临时实装13-4，抽象玩家未完成)
+=======
+AutoScriptForGF.*
+modules.7z
+>>>>>>> 87573c3 (代码暂存)
+=======
+*.pyc
+>>>>>>> e05e1e0 (分支提交-v0.0.1)
