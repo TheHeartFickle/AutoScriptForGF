@@ -9,6 +9,7 @@ from time import time, localtime
 from sys import path
 
 path.append('modules')
+
 from Ui_mainwindow import Ui_Form
 
 DEBUG = 0

@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 AutoScriptForGF/*
 src/__pycache__/*
 modules/__pycache__/*
 AutoScriptForGF.*
 modules.7z
 *.pyc
+=======
+AutoScriptForGF
+>>>>>>> 3863c8b (新增批处理文件)
